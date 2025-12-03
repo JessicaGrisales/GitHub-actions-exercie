@@ -1,0 +1,52 @@
+name: CI - Exercices
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-extension:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Récupération du code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Installation de Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Installation des dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # Audit sécurité
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      # Linter
+      - name: Lint code
+        run: npm run lint:check
+
+      # Build extension (Chrome + Firefox)
+      - name: Build extension
+        run: npm run build
+
+      # Création de l’artefact de l’extension
+      - name: Package extension
+        run: npm run zip
+
+      # Export artifact (Chrome + Firefox)
+      - name: Upload artifact (zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build
+          path: |
+            .output/*.zip
+            dist-artifacts/*.zip
+          if-no-files-found: warn
