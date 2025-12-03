@@ -11,42 +11,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      #############################################
       # Récupération du code
+      #############################################
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Installation de Node.js
+      #############################################
+      # Installation de Node.js + dépendances
+      #############################################
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Installation des dépendances
       - name: Install dependencies
         run: npm install
 
-      # Audit sécurité
+      #############################################
+      # Qualité & sécurité
+      #############################################
       - name: Audit dependencies
         run: npm audit --audit-level=high
 
-      # Linter
       - name: Lint code
         run: npm run lint:check
 
-      # Build extension (Chrome + Firefox)
-      - name: Build extension
+      #############################################
+      # Build + ZIP CHROME
+      #############################################
+      - name: Build Chrome extension
         run: npm run build
 
-      # Création de l’artefact de l’extension
-      - name: Package extension
+      - name: Zip Chrome extension
         run: npm run zip
 
-      # Export artifact (Chrome + Firefox)
-      - name: Upload artifact (zip)
+      #############################################
+      # Build + ZIP FIREFOX
+      #############################################
+      - name: Build Firefox extension
+        run: npm run build:firefox
+
+      - name: Zip Firefox extension
+        run: npm run zip:firefox
+
+      #############################################
+      # Package FIREFOX XPI (web-ext)
+      #############################################
+      - name: Package Firefox XPI
+        run: npm run pack:zip
+
+      #############################################
+      # UPLOAD DES ARTEFACTS
+      #############################################
+      - name: Upload Chrome & Firefox ZIPs
         uses: actions/upload-artifact@v4
         with:
-          name: extension-build
-          path: |
-            .output/*.zip
-            dist-artifacts/*.zip
+          name: extensions-zips
+          path: .output/*.zip
           if-no-files-found: warn
+
+      - name: Upload Firefox XPI
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-xpi
+          path: dist-artifacts/*.xpi
+          if-no-files-found: error
