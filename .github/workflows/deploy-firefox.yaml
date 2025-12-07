@@ -1,0 +1,52 @@
+name: Deploy Firefox Addon
+# Ce workflow s'exécute uniquement lorsqu'un nouveau tag est poussé (Partie 4)
+on:
+  push:
+    tags:
+      - "v*" # Déclenché par des tags comme v1.0.0, v2.0.0, etc.
+
+jobs:
+  sign_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Configuration de l'environnement
+      - name: Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 2. Récupération du code taggé
+      - name: Checkout du code taggé
+        uses: actions/checkout@v4
+
+      # 3. Installation des dépendances (Nécessaire pour 'npm run build' et 'web-ext')
+      - name: Installer les dépendances
+        run: npm install
+
+      # 4. Re-Build de l'extension
+      # On reconstruit ici pour s'assurer que les fichiers sont générés juste avant la signature.
+      - name: Re-Build Extension
+        run: npm run build
+
+      # 5. Signature et Déploiement (Utilisation de web-ext)
+      # L'outil web-ext empaquette (.zip) et signe l'extension
+      - name: Signer l'addon avec web-ext
+        run: |
+          npx web-ext sign \
+          --api-key ${{ secrets.AMO_JWT_ISSUER }} \
+          --api-secret ${{ secrets.AMO_JWT_SECRET }} \
+          --channel unlisted \
+          --source-dir .output/chrome-mv3 \
+          --artifacts-dir ./signed
+        env:
+          # Les secrets sont passés en variables d'environnement pour la commande web-ext
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+
+      # 6. Sauvegarde du fichier signé (Livrable final)
+      - name: Uploader l'artefact signé
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-signed-addon
+          path: ./signed
