@@ -32,13 +32,7 @@ jobs:
       # 5. Signature et Déploiement (Utilisation de web-ext)
       # L'outil web-ext empaquette (.zip) et signe l'extension
       - name: Signer l'addon avec web-ext
-        run: |
-          npx web-ext sign \
-          --api-key ${{ secrets.AMO_JWT_ISSUER }} \
-          --api-secret ${{ secrets.AMO_JWT_SECRET }} \
-          --channel unlisted \
-          --source-dir .output/firefox-mv2 \ 
-          --artifacts-dir ./signed
+        run: npx web-ext sign --api-key ${{ secrets.AMO_JWT_ISSUER }} --api-secret ${{ secrets.AMO_JWT_SECRET }} --channel unlisted --source-dir .output/firefox-mv2 --artifacts-dir ./signed
         env:
           # Les secrets sont passés en variables d'environnement pour la commande web-ext
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
