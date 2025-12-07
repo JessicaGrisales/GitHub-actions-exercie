@@ -1,79 +1,47 @@
-name: CI - Exercices
+name: CI Workflow (Build & Test)
 
+# Déclenchement automatique lors d'un push ou d'une Pull Request (Partie 3)
 on:
   push:
-    branches: ["main"]
+    branches: [main, master] # Ajustez les noms de branches si nécessaire
   pull_request:
-    branches: ["main"]
+    branches: [main, master]
 
 jobs:
-  build-extension:
+  build_and_test:
     runs-on: ubuntu-latest
-
     steps:
-      #############################################
-      # Récupération du code
-      #############################################
-      - name: Checkout repository
+      # 1. Récupération du code
+      - name: Checkout du code
         uses: actions/checkout@v4
 
-      #############################################
-      # Installation de Node.js + dépendances
-      #############################################
-      - name: Setup Node.js
+      # 2. Configuration et Installation
+      - name: Configurer Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm" # Active la mise en cache
 
-      - name: Install dependencies
+      - name: Installer les dépendances
         run: npm install
 
-      #############################################
-      # Qualité & sécurité
-      #############################################
-      - name: Audit dependencies
-        run: npm audit --audit-level=high
+      # 3. Qualité et Tests
+      - name: Audit de sécurité
+        run: npm audit
 
       - name: Lint code
         run: npm run lint:check
 
-      #############################################
-      # Build + ZIP CHROME
-      #############################################
-      - name: Build Chrome extension
+      - name: Exécuter les tests unitaires
+        run: npm test # Assurez-vous que le script "test" existe dans votre package.json
+
+      # 4. Compilation de l'extension
+      - name: Build extension
         run: npm run build
 
-      - name: Zip Chrome extension
-        run: npm run zip
-
-      #############################################
-      # Build + ZIP FIREFOX
-      #############################################
-      - name: Build Firefox extension
-        run: npm run build:firefox
-
-      - name: Zip Firefox extension
-        run: npm run zip:firefox
-
-      #############################################
-      # Package FIREFOX XPI (web-ext)
-      #############################################
-      - name: Package Firefox XPI
-        run: npm run pack:zip
-
-      #############################################
-      # UPLOAD DES ARTEFACTS
-      #############################################
-      - name: Upload Chrome & Firefox ZIPs
+      # 5. Sauvegarde de l'Artefact (Utilisation du chemin vérifié)
+      - name: Uploader l'artefact (Les fichiers compilés)
         uses: actions/upload-artifact@v4
         with:
-          name: extensions-zips
-          path: .output/*.zip
-          if-no-files-found: warn
-
-      - name: Upload Firefox XPI
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox-xpi
-          path: dist-artifacts/*.xpi
-          if-no-files-found: error
+          name: addon-build-artifact
+          path: .output/chrome-mv3 # Chemin de sortie confirmé par wxt
