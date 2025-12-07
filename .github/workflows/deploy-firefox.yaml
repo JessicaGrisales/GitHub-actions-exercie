@@ -27,7 +27,7 @@ jobs:
       # 4. Re-Build de l'extension
       # On reconstruit ici pour s'assurer que les fichiers sont générés juste avant la signature.
       - name: Re-Build Extension
-        run: npm run build
+        run: npm run build:firefox
 
       # 5. Signature et Déploiement (Utilisation de web-ext)
       # L'outil web-ext empaquette (.zip) et signe l'extension
@@ -37,7 +37,7 @@ jobs:
           --api-key ${{ secrets.AMO_JWT_ISSUER }} \
           --api-secret ${{ secrets.AMO_JWT_SECRET }} \
           --channel unlisted \
-          --source-dir .output/chrome-mv3 \
+          --source-dir .output\firefox-mv2 \
           --artifacts-dir ./signed
         env:
           # Les secrets sont passés en variables d'environnement pour la commande web-ext
