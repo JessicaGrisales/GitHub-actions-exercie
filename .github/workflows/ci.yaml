@@ -32,7 +32,7 @@ jobs:
       - name: Lint code
         run: npm run lint:check
 
-      - name: Exécuter les tests unitaires
+      - name: Exécuter les tests unitairess
         run: npm test # Assurez-vous que le script "test" existe dans votre package.json
 
       # 4. Compilation de l'extension
